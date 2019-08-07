@@ -1,0 +1,67 @@
+version: '3.0'
+services:
+    redis:
+        image: 'redis:3.2.7'
+
+    postgres:
+        image: postgres:9.6
+        environment:
+            - POSTGRES_USER=airflow
+            - POSTGRES_PASSWORD=airflow
+            - POSTGRES_DB=airflow
+            - PGDATA=/var/lib/postgresql/data/pgdata
+            - ./pgdata:/var/lib/postgresql/data/pgdata
+        ports:
+            - "5432:5432"
+
+    webserver:
+        image: puckel/docker-airflow:1.10.3
+        restart: always
+        depends_on:
+            - postgres
+            - redis
+        environment:
+            - LOAD_EX=n
+            - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+            - EXECUTOR=Celery
+        volumes:
+            - ./dags:/usr/local/airflow/dags
+            - ./plugins:/usr/local/airflow/plugins
+            - ./requirements.txt:/requirements.txt
+        ports:
+            - "8080:8080"
+        command: webserver
+        healthcheck:
+            test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
+            interval: 30s
+            timeout: 30s
+            retries: 3
+
+    scheduler:
+        image: puckel/docker-airflow:1.10.3
+        restart: always
+        depends_on:
+            - webserver
+        volumes:
+            - ./dags:/usr/local/airflow/dags
+            - ./plugins:/usr/local/airflow/plugins
+            - ./requirements.txt:/requirements.txt
+        environment:
+            - LOAD_EX=n
+            - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+            - EXECUTOR=Celery
+        command: scheduler
+
+    worker:
+        image: puckel/docker-airflow:1.10.3
+        restart: always
+        depends_on:
+            - scheduler
+        volumes:
+            - ./dags:/usr/local/airflow/dags
+            - ./plugins:/usr/local/airflow/plugins
+            - ./requirements.txt:/requirements.txt
+        environment:
+            - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+            - EXECUTOR=Celery
+        command: worker
