@@ -11,12 +11,15 @@ data about climate change.
 2. Setup development environment
 3. Analyse data sources using Jupyter Notebooks
 4. Define data model
-5. Build data pipelines
-6. Validate results
+5. Build Airflow operators and plugins
+6. Build data pipelines
+7. Validate results
 
 ### 1. Data sources
-Data packages are retrieved from [Datahub.io](https://datahub.io) 
+Most data packages are retrieved from [Datahub.io](https://datahub.io) 
 using the Python package [datapackage](https://github.com/frictionlessdata/datapackage-py).
+
+The world development indicators data package has been retrieved from [Kaggle.com](https://kaggle.com).
 
 The following data packages have been used for this project:
 * [Global Temperature Time Series](https://datahub.io/core/global-temp)
@@ -24,6 +27,7 @@ The following data packages have been used for this project:
 * [Sea Level Rise](https://datahub.io/core/sea-level-rise)
 * [CO2 PPM - Trends in Atmospheric Carbon Dioxide](https://datahub.io/core/co2-ppm)
 * [World Population Growth](https://datahub.io/core/population) 
+* [World Development Indicators](https://www.kaggle.com/worldbank/world-development-indicators)
 
 ### 2. Development environment
 The development environment is build on top of Docker for easier deployment. 
@@ -112,6 +116,43 @@ The data shows an increase of almost 60 millimeters since the base year of 1985.
 When comparing it to the start of measurements (1886), the sea level has increased with more than 210 millimeters.
 
 ![Global sea level rise](./notebooks/sea_level_rise.png)
+
+#### 3.4 CO2 PPM 
+The data package contains a dataset with the trend of carbon dioxide PPM since 1958.
+The carbon dioxide PPM is defined as the number of CO2 molecules divided by all molecules in the air
+after water vapor has been removed.
+ 
+Information about dataset:
+* 6 columns
+* 727 rows
+* Format: CSV
+
+Interesting columns are:
+* Date
+* Interpolated (CO2 PPM)
+* Trend
+
+The data shows an increase of almost 100 PPM of CO2 (300 PPM to 400 PPM) in the air since 
+the base year of 1959.
+
+![CO2 PPM in air](./notebooks/co2_ppm_rise.png)
+
+#### 3.5 Population growth 
+The data package contains a dataset with the population growth per country, per region, per continent and globally.
+ 
+Information about dataset:
+* 4 columns
+* 14885 rows
+* Format: CSV
+
+Interesting columns are:
+* Date
+* Interpolated (CO2 PPM)
+* Trend
+
+The data shows an increase of over 4 billion people since the base year of 1960. That is an increase of more than 200%.
+
+![Global population growth](./notebooks/population_growth_globally.png)
 
 ### Data pipelines
 The data pipelines have a number of goals:
