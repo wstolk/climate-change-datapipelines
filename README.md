@@ -45,8 +45,73 @@ The data package contains datasets for the temperature deviations between 1882 a
 There are two datasets available: the yearly temperature deviation and the 
 monthly temperature deviation. 
 
+Information about dataset:
+* 3 columns
+* 3288 rows
+* Format: CSV
+
+Interesting columns are:
+* Date
+* GCAG (combined dataset for global temperature anomaly data from GHCN and ICOADS)
+* GISTEMP (combined land-surface air and sea-surface water temperature anomalies from NASA's GISS)
+
 After analysis, we see that the global temperature has roughly increased with one degree Celsius since the global mean of 1951 to 1980:
+
 ![Global temperature](./notebooks/gcag_gistemp_analysis.png)
+
+#### 3.2 Glacier mass balance time series
+The data package contains a dataset with the average cumulative mass balance of Glaciers worldwide from 1945 - 2014.
+1945 is the base year for the dataset. Measurements are in meters of water. This represents the global changes
+in the average thickness of glaciers.
+
+Information about dataset:
+* 3 columns
+* 70 rows
+* Format: CSV
+
+Interesting columns are:
+* Year
+* Mean cumulative mass balance
+
+The data clearly shows a massive decrease of roughly 30 meters since 1945 in the average thickness of glaciers worldwide:
+
+![Global decrease glacier thickness](./notebooks/glacier_mean_cumulative_mass_balance.png)
+
+#### 3.3 Sea level rise
+The data package contains a dataset with the global mean of the sea level from 1886 to 2015.
+The base year of the dataset lies around 1986.
+
+Information about dataset:
+* 3 columns
+* 1608 rows
+* Format: CSV
+
+Interesting columns are:
+* Date
+* Global mean sea level (millimeters)
+
+The data shows an increase of almost 60 millimeters since the base year of 1985.
+When comparing it to the start of measurements (1886), the sea level has increased with more than 210 millimeters.
+
+![Global sea level rise](./notebooks/sea_level_rise.png)
+
+#### 3.3 Sea level rise
+The data package contains a dataset with the global mean of the sea level from 1886 to 2015.
+The base year of the dataset lies around 1986.
+
+Information about dataset:
+* 3 columns
+* 1608 rows
+* Format: CSV
+
+Interesting columns are:
+* Date
+* Global mean sea level (millimeters)
+
+The data shows an increase of almost 60 millimeters since the base year of 1985.
+When comparing it to the start of measurements (1886), the sea level has increased with more than 210 millimeters.
+
+![Global sea level rise](./notebooks/sea_level_rise.png)
 
 ### Data pipelines
 The data pipelines have a number of goals:
