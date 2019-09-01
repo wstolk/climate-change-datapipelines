@@ -1,10 +1,10 @@
-# climate-change-datapipelines
-Apache Airflow data pipelines to collect and process data about climate change.
+# World Development Analysis
+Apache Airflow data pipelines to collect and process data about world development and climate change.
 
 ## Goal of the project
 This project has been initiated to finalise the Udacity Nanodegree of Data Engineering.
 Goal of the project is to build data pipelines for retrieving and processing 
-data about climate change.
+data about world development and it's correlation to climate change.
 
 ## Planning
 1. Gather data sources
@@ -128,9 +128,10 @@ Information about dataset:
 * Format: CSV
 
 Interesting columns are:
-* Date
-* Interpolated (CO2 PPM)
-* Trend
+* Country name
+* Country code
+* Year
+* Population
 
 The data shows an increase of over 4 billion people since the base year of 1960. That is an increase of more than 200%.
 
@@ -155,8 +156,6 @@ The country dataset contains 247 rows and 31 columns. The interesting columns ar
 
 * CountryCode
 * ShortName
-* TableName
-* LongName
 * Alpha2Code
 * CurrencyUnit
 * Region
@@ -171,7 +170,29 @@ The indicators dataset contains 6 columns and roughly 5.660.000 rows. The intere
 * Year
 * Value
 
-### Data pipelines
+##### 3.6.3 Series
+
+The series dataset contains information about the indicators. It consists of 20 columns and 1345 rows. 
+Interesting columns are:
+
+* SeriesCode
+* Topic
+* IndicatorName
+* Periodicity
+* BasePeriod
+* AggregationMethod
+
+The UnitOfMeasure column would have been a good addition to the above mentioned columns, however, 
+it rarely has a value and is therefore left out.
+
+### 4. Data Model
+
+The indicator dataset has been chosen as the fact table. The other datasets are used as dimension tables. 
+Most relations between the fact and dimension tables are based on date or country code.
+
+![Data Model](./resources/world_development_data_model.png)
+
+### 5. Data pipelines
 The data pipelines have a number of goals:
 * Retrieving data out of sources:
     * API's
