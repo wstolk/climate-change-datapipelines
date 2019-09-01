@@ -99,24 +99,6 @@ When comparing it to the start of measurements (1886), the sea level has increas
 
 ![Global sea level rise](./notebooks/sea_level_rise.png)
 
-#### 3.3 Sea level rise
-The data package contains a dataset with the global mean of the sea level from 1886 to 2015.
-The base year of the dataset lies around 1986.
-
-Information about dataset:
-* 3 columns
-* 1608 rows
-* Format: CSV
-
-Interesting columns are:
-* Date
-* Global mean sea level (millimeters)
-
-The data shows an increase of almost 60 millimeters since the base year of 1985.
-When comparing it to the start of measurements (1886), the sea level has increased with more than 210 millimeters.
-
-![Global sea level rise](./notebooks/sea_level_rise.png)
-
 #### 3.4 CO2 PPM 
 The data package contains a dataset with the trend of carbon dioxide PPM since 1958.
 The carbon dioxide PPM is defined as the number of CO2 molecules divided by all molecules in the air
@@ -153,6 +135,41 @@ Interesting columns are:
 The data shows an increase of over 4 billion people since the base year of 1960. That is an increase of more than 200%.
 
 ![Global population growth](./notebooks/population_growth_globally.png)
+
+#### 3.6 World Development Indicators
+The data package contains 6 datasets, available as seperate CSV's or packaged in a SQLite database. 
+We will use the CSV's for ease of use. The package consists of the following datasets:
+
+1. Country
+2. CountryNotes
+3. Footnotes
+4. Indicators
+5. Series
+6. SeriesNotes 
+
+We will focus on three of the six datasets: country, indicators and series.
+
+##### 3.6.1 Country
+
+The country dataset contains 247 rows and 31 columns. The interesting columns are:
+
+* CountryCode
+* ShortName
+* TableName
+* LongName
+* Alpha2Code
+* CurrencyUnit
+* Region
+* IncomeGroup
+
+##### 3.6.2 Indicators
+
+The indicators dataset contains 6 columns and roughly 5.660.000 rows. The interesting columns are:
+
+* CountryCode
+* IndicatorCode
+* Year
+* Value
 
 ### Data pipelines
 The data pipelines have a number of goals:
