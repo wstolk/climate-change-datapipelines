@@ -1,20 +1,21 @@
 from __future__ import division, absolute_import, print_function
-
 from airflow.plugins_manager import AirflowPlugin
-
-import operators
-import helpers
+from redshift_operations.helpers.sql_queries import SqlQueries
+from redshift_operations.operators.stage_redshift import StageToRedshiftOperator
+from redshift_operations.operators.load_fact import LoadFactOperator
+from redshift_operations.operators.load_dimension import LoadDimensionOperator
+from redshift_operations.operators.data_quality import DataQualityOperator
 
 
 # Defining the plugin class
 class RedshiftOperationsPlugin(AirflowPlugin):
     name = "redshift_operations_plugin"
     operators = [
-        operators.StageToRedshiftOperator,
-        operators.LoadFactOperator,
-        operators.LoadDimensionOperator,
-        operators.DataQualityOperator
+        StageToRedshiftOperator,
+        LoadFactOperator,
+        LoadDimensionOperator,
+        DataQualityOperator
     ]
     helpers = [
-        helpers.SqlQueries
+        SqlQueries
     ]
