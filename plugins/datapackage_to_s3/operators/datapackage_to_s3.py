@@ -29,8 +29,9 @@ class DatapackageToS3Operator(BaseOperator):
     template_fields = ['url', 'resource', 's3_conn_id', 's3_bucket', 's3_filepath']
 
     @apply_defaults
-    def __init__(self, url, resource, s3_conn_id, s3_bucket, s3_filepath):
-        self.url = url
+    def __init__(self, package_url, resource, s3_conn_id, s3_bucket, s3_filepath, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.url = package_url
         self.resource = resource
         self.s3_conn_id = s3_conn_id
         self.s3_bucket = s3_bucket
@@ -43,7 +44,7 @@ class DatapackageToS3Operator(BaseOperator):
 
         # Read resource from package and store to Pandas Dataframe
         logging.info("package retrieved, reading resource {resource} into DF".format(resource=self.resource))
-        resource = package.get_resource(self.resource)
+        resource = package.get_resource(self.resource).read()
         df = pd.DataFrame(resource)
 
         # Generate random unique filename for temporary storing CSV to filesystem
@@ -54,7 +55,7 @@ class DatapackageToS3Operator(BaseOperator):
         logging.info("uploading local CSV {fn} to S3://{bucket}/{fp}".format(fn=fn_temp,
                                                                              bucket=self.s3_bucket,
                                                                              fp=self.s3_filepath))
-        s3 = S3Hook(self.s3_conn_id)
+        s3 = S3Hook(aws_conn_id=self.s3_conn_id)
         s3.load_file(filename=fn_temp,
                      key=self.s3_filepath,
                      bucket_name=self.s3_bucket,

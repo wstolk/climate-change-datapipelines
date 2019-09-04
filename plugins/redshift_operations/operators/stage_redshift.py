@@ -26,25 +26,18 @@ class StageToRedshiftOperator(BaseOperator):
 
     ui_color = '#358140'
 
-    template_fields = ['redshift_conn_id', 'table', 'schema']
+    template_fields = ['redshift_conn_id', 'redshift_table', 'redshift_schema']
 
     @apply_defaults
-    def __init__(self,
-                 redshift_conn_id='',
-                 table='',
-                 schema='',
-                 s3_bucket='',
-                 s3_key='',
-                 arn='',
-                 json_map='auto',
-                 *args, **kwargs):
-        super(StageToRedshiftOperator, self).__init__(*args, **kwargs)
+    def __init__(self, redshift_conn_id, redshift_table, redshift_schema, redshift_arn, s3_bucket, s3_key,
+                 json_map='auto', *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.redshift_conn_id = redshift_conn_id
-        self.redshift_table = table
-        self.redshift_schema = schema
+        self.redshift_table = redshift_table
+        self.redshift_schema = redshift_schema
+        self.redshift_arn = redshift_arn
         self.s3_bucket = s3_bucket
         self.s3_key = s3_key
-        self.arn = arn
         self.json_map = json_map
 
     def execute(self, context):
