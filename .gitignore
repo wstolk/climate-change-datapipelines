@@ -108,3 +108,6 @@ venv.bak/
 
 # world indicator data
 data/
+
+# exclude variables.json, could contain tokens or other private information
+variables.json

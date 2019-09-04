@@ -53,6 +53,7 @@ RUN set -ex \
     && pip install pyasn1 \
     && pip install apache-airflow[crypto,celery,postgres,hive,jdbc,mysql,s3,ssh${AIRFLOW_DEPS:+,}${AIRFLOW_DEPS}]==${AIRFLOW_VERSION} \
     && pip install 'redis==3.2' \
+    && pip install 'Flask==1.0.4' \
     && if [ -n "${PYTHON_DEPS}" ]; then pip install ${PYTHON_DEPS}; fi \
     && apt-get purge --auto-remove -yqq $buildDeps \
     && apt-get autoremove -yqq --purge \
@@ -65,8 +66,12 @@ RUN set -ex \
         /usr/share/doc \
         /usr/share/doc-base
 
-COPY script/entrypoint.sh /entrypoint.sh
-COPY config/airflow.cfg ${AIRFLOW_USER_HOME}/airflow.cfg
+COPY ./script/entrypoint.sh /entrypoint.sh
+COPY ./config/airflow.cfg ${AIRFLOW_USER_HOME}/airflow.cfg
+COPY ./dags ${AIRFLOW_USER_HOME}/dags
+COPY ./plugins ${AIRFLOW_USER_HOME}/plugins
+COPY ./requirements.txt /requirements.txt
+COPY ./variables.json /variables.json
 
 RUN chown -R airflow: ${AIRFLOW_USER_HOME}
 
