@@ -9,10 +9,10 @@ class DataQualityOperator(BaseOperator):
 
     Will check the tables in Redshift for records. If a table is found with zero recors,
     a ValueError will be raised.
-    :param redshift_conn_id:                Redshift connection ID.
-    :type redshift_conn_id:                 string
-    :param tables:                          List of tables to check for quality.
-    :type tables:                           list
+    :param redshift_conn_id:        Redshift connection ID.
+    :type redshift_conn_id:         str
+    :param tables:                  List of tables to check for quality.
+    :type tables:                   list
     """
 
     ui_color = '#89DA59'
@@ -20,10 +20,7 @@ class DataQualityOperator(BaseOperator):
     template_fields = ['redshift_conn_id']
 
     @apply_defaults
-    def __init__(self,
-                 redshift_conn_id='',
-                 tables=[]
-                 *args, **kwargs):
+    def __init__(self, redshift_conn_id, tables, *args, **kwargs):
 
         super(DataQualityOperator, self).__init__(*args, **kwargs)
         self.redshift_conn_id = redshift_conn_id
