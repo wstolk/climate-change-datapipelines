@@ -5,7 +5,7 @@ from airflow import DAG
 from airflow.hooks.postgres_hook import PostgresHook
 from airflow.operators.python_operator import PythonOperator
 
-redshift_conn_id = "redshift_analytics_db"
+redshift_conn_id = "redshift_conn"
 
 default_args = {
     'depends_on_past': True,
@@ -17,7 +17,83 @@ default_args = {
 }
 
 
-def create_tables():
+def create_staging_tables(**kwargs):
+    create_glacier_staging = """CREATE TABLE IF NOT EXISTS glacier_staging (
+        "year" INT,
+        "mean_cumulative_mass_balance" FLOAT,
+        "number_of_observations" INT
+    );"""
+
+    create_temperature_staging = """CREATE TABLE IF NOT EXISTS temperature_staging (
+        "source" VARCHAR(10),
+        "date" DATE,
+        "mean" FLOAT
+    );"""
+
+    create_population_staging = """CREATE TABLE IF NOT EXISTS population_staging (
+        "country_name" VARCHAR(255),
+        "country_code" VARCHAR(3),
+        "year" INT,
+        "value" FLOAT
+    );"""
+
+    create_sealevel_staging = """CREATE TABLE IF NOT EXISTS sealevel_staging (
+        "time" DATE,
+        "gmsl" BIGINT
+    );"""
+
+    create_series_staging = """CREATE TABLE IF NOT EXISTS series_staging (
+        "series_code" VARCHAR(20),
+        "topic" VARCHAR(255),
+        "indicator_name" VARCHAR(100),
+        "periodicity" VARCHAR(20),
+        "base_period" SMALLINT,
+        "aggregation_method" VARCHAR(40)
+    );"""
+
+    create_co2_ppm_staging = """CREATE TABLE IF NOT EXISTS co2_ppm_staging (
+        "date" DATE,
+        "decimal_date" FLOAT,
+        "average" FLOAT,
+        "interpolated" FLOAT,
+        "trend" FLOAT,
+        "number_days" INT
+    );"""
+
+    create_countries_staging = """CREATE TABLE IF NOT EXISTS countries_staging (
+        "country_code" VARCHAR(3),
+        "shortname" VARCHAR(40),
+        "alpha_code" VARCHAR(2),
+        "currency_unit" VARCHAR(40),
+        "region" VARCHAR(30),
+        "income_group" VARCHAR(30)
+    );"""
+
+    create_indicators_staging = """CREATE TABLE indicators_staging (
+        "indicator_code" VARCHAR(20),
+        "country_code" VARCHAR(3),
+        "year" INT,
+        "value" BIGINT
+    );"""
+
+    tables = [
+        create_glacier_staging,
+        create_temperature_staging,
+        create_population_staging,
+        create_sealevel_staging,
+        create_series_staging,
+        create_co2_ppm_staging,
+        create_countries_staging,
+        create_indicators_staging
+    ]
+
+    for idx, table in enumerate(tables):
+        logging.info("creating table {idx} of {len}".format(idx=idx + 1, len=len(tables)))
+        redshift_hook = PostgresHook(postgres_conn_id=redshift_conn_id)
+        redshift_hook.run(table)
+
+
+def create_tables(**kwargs):
     create_glacier_dimension = """CREATE TABLE IF NOT EXISTS glacier_dimension (
         "year" INT PRIMARY KEY,
         "cumulative_mass" FLOAT NOT NULL
@@ -66,9 +142,9 @@ def create_tables():
     ) SORTKEY (region, income_group);"""
 
     create_indicators_fact = """CREATE TABLE indicators_fact (
-        "indicator_id" SERIAL PRIMARY KEY,
+        "indicator_id" INT IDENTITY(0,1) PRIMARY KEY,
         "indicator_code" VARCHAR(20) NOT NULL DISTKEY,
-        "country_code" VARCHAR(3) NOT NULL DISTKEY,
+        "country_code" VARCHAR(3) NOT NULL,
         "year" INT NOT NULL,
         "value" BIGINT NOT NULL
     ) SORTKEY (year, country_code, indicator_code);"""
@@ -90,7 +166,7 @@ def create_tables():
         redshift_hook.run(table)
 
 
-def drop_tables():
+def drop_tables(**kwargs):
     """
     loop over the list of tables and drop the tables in the database if exists
     any trigger that exists for a table will be removed as well
@@ -100,6 +176,14 @@ def drop_tables():
 
     # list of tables to delete
     tables = [
+        "glacier_dimension",
+        "temperature_staging",
+        "population_staging",
+        "sealevel_staging",
+        "series_staging",
+        "co2_ppm_staging",
+        "countries_staging",
+        "indicators_staging",
         "glacier_dimension",
         "temperature_dimension",
         "population_dimension",
@@ -124,12 +208,16 @@ dag = DAG('redshift_create_tables',
           description='Will drop all existing tables and create fresh tables with triggers')
 
 drop = PythonOperator(task_id="drop_tables",
-                      python_callable=drop_tables,
-                      dag=dag)
+                      dag=dag,
+                      python_callable=drop_tables)
+
+create_staging = PythonOperator(task_id="create_staging_tables",
+                                dag=dag,
+                                python_callable=create_staging_tables)
 
 create = PythonOperator(task_id="create_tables",
-                        python_callable=create_tables,
-                        dag=dag)
+                        dag=dag,
+                        python_callable=create_tables)
 
 # first, drop existing tables, than create new tables
-drop >> create
+drop >> create_staging >> create
