@@ -18,8 +18,8 @@ class StageToRedshiftOperator(BaseOperator):
     :type s3_bucket:             string
     :param s3_key:               S3 key where the source data is located.
     :type s3_key:                string
-    :param arn:                  AWS ARN for the role to execute the query with.
-    :type arn:                   string
+    :param redshift_arn:         AWS ARN for the role to execute the query with.
+    :type redshift_arn:          string
     :param json_map:             S3 location where the JSON map can be found. Default value is auto
     :type json_map:              string
     """
@@ -49,13 +49,14 @@ class StageToRedshiftOperator(BaseOperator):
         COPY {schema}.{table}
         FROM 's3://{bucket}/{key}'
         IAM_ROLE '{arn}'
-        FORMAT AS json '{json_map}'
+        DELIMITER ','
+        REMOVEQUOTES
+        IGNOREHEADER 1;
         """.format(schema=self.redshift_schema,
                    table=self.redshift_table,
                    bucket=self.s3_bucket,
                    key=self.s3_key,
-                   arn=self.arn,
-                   json_map=self.json_map)
+                   arn=self.redshift_arn)
 
         # execute SQL query in Redshift database
         self.log.info('Copying data from S3 to Redshift')

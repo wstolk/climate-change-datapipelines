@@ -39,7 +39,8 @@ def create_staging_tables(**kwargs):
 
     create_sealevel_staging = """CREATE TABLE IF NOT EXISTS sealevel_staging (
         "time" DATE,
-        "gmsl" BIGINT
+        "gmsl" FLOAT,
+        "uncertainty" FLOAT
     );"""
 
     create_series_staging = """CREATE TABLE IF NOT EXISTS series_staging (
@@ -176,7 +177,7 @@ def drop_tables(**kwargs):
 
     # list of tables to delete
     tables = [
-        "glacier_dimension",
+        "glacier_staging",
         "temperature_staging",
         "population_staging",
         "sealevel_staging",

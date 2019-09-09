@@ -4,6 +4,8 @@ from airflow import DAG
 from airflow.models import Variable
 from airflow.operators.datapackage_to_s3_plugin import DatapackageToS3Operator
 from airflow.operators.redshift_operations_plugin import StageToRedshiftOperator
+from airflow.operators.redshift_operations_plugin import LoadStagingToProduction
+from helpers import SqlQueries
 
 default_args = {
     'depends_on_past': False,
@@ -21,40 +23,57 @@ redshift_conn_id = 'redshift_conn'
 redshift_schema = Variable.get('redshift_schema')
 redshift_arn = Variable.get('redshift_arn')
 
-datasets = [{
-    "id": "global_temperature",
-    "url": "https://datahub.io/core/global-temp/datapackage.json",
-    "resource": "monthly_csv",
-    "headers": ["source", "year", "mean"],
-    "staging_table": "temperature_staging"
-}, {
-    "id": "glacier_mass_balance",
-    "url": "https://datahub.io/core/glacier-mass-balance/datapackage.json",
-    "resource": "glaciers_csv",
-    "headers": ["year", "mean_cumulative_mass_balance", "number_of_observations"],
-    "staging_table": "glacier_staging"
-}, {
-    "id": "sea_level_change",
-    "url": "https://datahub.io/core/sea-level-rise/datapackage.json",
-    "resource": "csiro_recons_gmsl_mo_2015_csv",
-    "headers": ["time", "gmsl"],
-    "staging_table": "sealevel_staging"
-}, {
-    "id": "co2_ppm_trend",
-    "url": "https://datahub.io/core/co2-ppm/datapackage.json",
-    "resource": "co2-mm-mlo_csv",
-    "headers": ["date", "decimal_date", "average", "interpolated", "trend", "number_days"],
-    "staging_table": "co2_ppm_staging"
-}, {
-    "id": "population_growth",
-    "url": "https://datahub.io/core/population/datapackage.json",
-    "resource": "population_csv",
-    "headers": ["country_name", "country_code", "year", "value"],
-    "staging_table": "population_staging"
-}]
+datasets = [
+    {
+        "id": "global_temperature",
+        "url": "https://datahub.io/core/global-temp/datapackage.json",
+        "resource": "monthly_csv",
+        "headers": ["source", "year", "mean"],
+        "staging_table": "temperature_staging",
+        "prod_table": "temperature_dimension",
+        "prod_columns": ("date", "gcag", "gistemp"),
+        "insert_query": SqlQueries.temperature_insert
+    }, {
+        "id": "glacier_mass_balance",
+        "url": "https://datahub.io/core/glacier-mass-balance/datapackage.json",
+        "resource": "glaciers_csv",
+        "headers": ["year", "mean_cumulative_mass_balance", "number_of_observations"],
+        "staging_table": "glacier_staging",
+        "prod_table": "glacier_dimension",
+        "prod_columns": ("year", "cumulative_mass"),
+        "insert_query": SqlQueries.glacier_insert
+    }, {
+        "id": "sea_level_change",
+        "url": "https://datahub.io/core/sea-level-rise/datapackage.json",
+        "resource": "csiro_recons_gmsl_mo_2015_csv",
+        "headers": ["time", "gmsl", "uncertainty"],
+        "staging_table": "sealevel_staging",
+        "prod_table": "sealevel_dimension",
+        "prod_columns": ("date", "sealevel"),
+        "insert_query": SqlQueries.sea_level_insert
+    }, {
+        "id": "co2_ppm_trend",
+        "url": "https://datahub.io/core/co2-ppm/datapackage.json",
+        "resource": "co2-mm-mlo_csv",
+        "headers": ["date", "decimal_date", "average", "interpolated", "trend", "number_days"],
+        "staging_table": "co2_ppm_staging",
+        "prod_table": "co2_ppm_dimension",
+        "prod_columns": ("date", "interpolated", "trend"),
+        "insert_query": SqlQueries.co2_ppm_insert
+    }, {
+        "id": "population_growth",
+        "url": "https://datahub.io/core/population/datapackage.json",
+        "resource": "population_csv",
+        "headers": ["country_name", "country_code", "year", "value"],
+        "staging_table": "population_staging",
+        "prod_table": "population_dimension",
+        "prod_columns": ("country_code", "year", "population"),
+        "insert_query": SqlQueries.population_insert
+    }
+]
 
 
-def create_dag(id, url, resource, headers, staging_table):
+def create_dag(id, url, resource, headers, staging_table, prod_table, prod_columns, insert_query):
     dag = DAG(dag_id=id,
               description='processing of global temperature data to Redshift',
               schedule_interval='0 3 1 * *',
@@ -78,11 +97,27 @@ def create_dag(id, url, resource, headers, staging_table):
                                             s3_key=s3_filepath,
                                             dag=dag)
 
-    store_to_s3 >> s3_to_staging
+    staging_to_prod = LoadStagingToProduction(task_id='{id}_staging_to_prod'.format(id=id),
+                                              redshift_conn_id=redshift_conn_id,
+                                              query=insert_query,
+                                              schema=redshift_schema,
+                                              table=prod_table,
+                                              columns=prod_columns,
+                                              delete_before_load=True,
+                                              dag=dag)
+
+    store_to_s3 >> s3_to_staging >> staging_to_prod
 
     return dag
 
 
 # Generate DAG per dataset
 for set in datasets:
-    globals()[set["id"]] = create_dag(set["id"], set["url"], set["resource"], set["headers"], set["staging_table"])
+    globals()[set["id"]] = create_dag(set["id"],
+                                      set["url"],
+                                      set["resource"],
+                                      set["headers"],
+                                      set["staging_table"],
+                                      set["prod_table"],
+                                      set["prod_columns"],
+                                      set["insert_query"])

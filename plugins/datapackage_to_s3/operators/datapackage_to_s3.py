@@ -55,7 +55,7 @@ class DatapackageToS3Operator(BaseOperator):
         fn_temp = str(uuid.uuid4())
 
         # Store Dataframe to locally stored CSV and upload to S3
-        df.to_csv(fn_temp)
+        df.to_csv(fn_temp, index=False)
         logging.info("uploading local CSV {fn} to S3://{bucket}/{fp}".format(fn=fn_temp,
                                                                              bucket=self.s3_bucket,
                                                                              fp=self.s3_filepath))
