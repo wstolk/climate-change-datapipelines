@@ -5,6 +5,7 @@ from airflow.models import Variable
 from airflow.operators.datapackage_to_s3_plugin import DatapackageToS3Operator
 from airflow.operators.redshift_operations_plugin import StageToRedshiftOperator
 from airflow.operators.redshift_operations_plugin import LoadStagingToProduction
+from airflow.operators.redshift_operations_plugin import DataQualityOperator
 from helpers.sql_queries import SqlQueries
 
 default_args = {
@@ -106,7 +107,12 @@ def create_dag(id, url, resource, headers, staging_table, prod_table, prod_colum
                                               delete_before_load=True,
                                               dag=dag)
 
-    store_to_s3 >> s3_to_staging >> staging_to_prod
+    run_quality_checks = DataQualityOperator(task_id='run_data_quality_checks',
+                                             dag=dag,
+                                             redshift_conn_id=redshift_conn_id,
+                                             table=prod_table)
+
+    store_to_s3 >> s3_to_staging >> staging_to_prod >> run_quality_checks
 
     return dag
 
