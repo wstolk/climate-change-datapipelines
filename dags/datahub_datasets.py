@@ -5,7 +5,7 @@ from airflow.models import Variable
 from airflow.operators.datapackage_to_s3_plugin import DatapackageToS3Operator
 from airflow.operators.redshift_operations_plugin import StageToRedshiftOperator
 from airflow.operators.redshift_operations_plugin import LoadStagingToProduction
-from helpers import SqlQueries
+from helpers.sql_queries import SqlQueries
 
 default_args = {
     'depends_on_past': False,
@@ -49,7 +49,7 @@ datasets = [
         "headers": ["time", "gmsl", "uncertainty"],
         "staging_table": "sealevel_staging",
         "prod_table": "sealevel_dimension",
-        "prod_columns": ("date", "sealevel"),
+        "prod_columns": ('date', 'sealevel'),
         "insert_query": SqlQueries.sea_level_insert
     }, {
         "id": "co2_ppm_trend",

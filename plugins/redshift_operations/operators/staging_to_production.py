@@ -34,7 +34,7 @@ class LoadStagingToProduction(BaseOperator):
                  columns=(),
                  delete_before_load=False,
                  *args, **kwargs):
-        super(LoadDimensionOperator, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.redshift_conn_id = redshift_conn_id
         self.query = query
         self.schema = schema
@@ -59,7 +59,7 @@ class LoadStagingToProduction(BaseOperator):
         {select_query}
         """.format(schema=self.schema,
                    table=self.table,
-                   columns=str(self.columns),
+                   columns='(' + ', '.join(self.columns) + ')',
                    select_query=self.query)
 
         # execute SQL query in Redshift database
