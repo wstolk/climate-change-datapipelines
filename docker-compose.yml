@@ -28,6 +28,7 @@ services:
             - ./dags:/usr/local/airflow/dags
             - ./plugins:/usr/local/airflow/plugins
             - ./requirements.txt:/requirements.txt
+            - ./data:/usr/local/airflow/data
         ports:
             - "8080:8080"
         command: webserver
@@ -46,6 +47,7 @@ services:
             - ./dags:/usr/local/airflow/dags
             - ./plugins:/usr/local/airflow/plugins
             - ./requirements.txt:/requirements.txt
+            - ./data:/usr/local/airflow/data
         environment:
             - LOAD_EX=n
             - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
@@ -61,6 +63,7 @@ services:
             - ./dags:/usr/local/airflow/dags
             - ./plugins:/usr/local/airflow/plugins
             - ./requirements.txt:/requirements.txt
+            - ./data:/usr/local/airflow/data
         environment:
             - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
             - EXECUTOR=Celery

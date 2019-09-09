@@ -44,12 +44,26 @@ def create_staging_tables(**kwargs):
     );"""
 
     create_series_staging = """CREATE TABLE IF NOT EXISTS series_staging (
-        "series_code" VARCHAR(20),
+        "series_code" VARCHAR(255),
         "topic" VARCHAR(255),
-        "indicator_name" VARCHAR(100),
-        "periodicity" VARCHAR(20),
-        "base_period" SMALLINT,
-        "aggregation_method" VARCHAR(40)
+        "indicator_name" VARCHAR(255),
+        "short_definition" VARCHAR(255),
+        "long_definition" VARCHAR(255),
+        "unit_of_measure" VARCHAR(255),
+        "periodicity" VARCHAR(255),
+        "base_period" VARCHAR(255),
+        "other_notes" FLOAT,
+        "aggregation_method" VARCHAR(255),
+        "limitations_and_exceptions" VARCHAR(255),
+        "notes_from_original_source" VARCHAR(255),
+        "general_comments" VARCHAR(255),
+        "source" VARCHAR(255),
+        "statistical_concept_and_methodology" VARCHAR(255),
+        "development_relevance" VARCHAR(255),
+        "related_source_links" VARCHAR(255),
+        "other_web_links" FLOAT,
+        "related_indicators" FLOAT,
+        "license_type" VARCHAR(255)
     );"""
 
     create_co2_ppm_staging = """CREATE TABLE IF NOT EXISTS co2_ppm_staging (
@@ -64,17 +78,43 @@ def create_staging_tables(**kwargs):
     create_countries_staging = """CREATE TABLE IF NOT EXISTS countries_staging (
         "country_code" VARCHAR(3),
         "shortname" VARCHAR(40),
+        "tablename" VARCHAR(40),
+        "longname" VARCHAR(255),
         "alpha_code" VARCHAR(2),
         "currency_unit" VARCHAR(40),
+        "special_notes" TEXT,
         "region" VARCHAR(30),
-        "income_group" VARCHAR(30)
+        "income_group" VARCHAR(30),
+        "national_accounts_base_year" VARCHAR(255),
+        "national_accounts_reference_year" VARCHAR(255),
+        "sna_price_valuation" VARCHAR(100),
+        "lendingcategory" VARCHAR(40),
+        "other_groups" VARCHAR(50),
+        "system_of_national_accounts" VARCHAR(100),
+        "alternative_conversion_factor" VARCHAR(60),
+        "ppp_survey_year" VARCHAR(60),
+        "balance_of_payments_manual_in_use" VARCHAR(255),
+        "external_debt_reporting_status" VARCHAR(40),
+        "system_of_trade" VARCHAR(60),
+        "government_accounting_concept" VARCHAR(60),
+        "imf_data_dissemination_standard" VARCHAR(100),
+        "latest_population_census" VARCHAR(60),
+        "latest_household_survey" VARCHAR(255),
+        "source_of_most_recent_income_data" VARCHAR(255),
+        "vital_registration_complete" VARCHAR(60),
+        "latest_agricultural_census" VARCHAR(60),
+        "latest_industrial_data" FLOAT,
+        "latest_trade_data" FLOAT,
+        "latest_water_withdrawal_data" FLOAT
     );"""
 
     create_indicators_staging = """CREATE TABLE indicators_staging (
-        "indicator_code" VARCHAR(20),
-        "country_code" VARCHAR(3),
+        "country_name" VARCHAR(255),
+        "country_code" VARCHAR(255),
+        "indicator_name" VARCHAR(255),
+        "indicator_code" VARCHAR(255),
         "year" INT,
-        "value" BIGINT
+        "value" FLOAT
     );"""
 
     tables = [
