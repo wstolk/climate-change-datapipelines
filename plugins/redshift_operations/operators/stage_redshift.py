@@ -18,33 +18,26 @@ class StageToRedshiftOperator(BaseOperator):
     :type s3_bucket:             string
     :param s3_key:               S3 key where the source data is located.
     :type s3_key:                string
-    :param arn:                  AWS ARN for the role to execute the query with.
-    :type arn:                   string
+    :param redshift_arn:         AWS ARN for the role to execute the query with.
+    :type redshift_arn:          string
     :param json_map:             S3 location where the JSON map can be found. Default value is auto
     :type json_map:              string
     """
 
     ui_color = '#358140'
 
-    template_fields = ['redshift_conn_id', 'table', 'schema']
+    template_fields = ['redshift_conn_id', 'redshift_table', 'redshift_schema']
 
     @apply_defaults
-    def __init__(self,
-                 redshift_conn_id='',
-                 table='',
-                 schema='',
-                 s3_bucket='',
-                 s3_key='',
-                 arn='',
-                 json_map='auto',
-                 *args, **kwargs):
-        super(StageToRedshiftOperator, self).__init__(*args, **kwargs)
+    def __init__(self, redshift_conn_id, redshift_table, redshift_schema, redshift_arn, s3_bucket, s3_key,
+                 json_map='auto', *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.redshift_conn_id = redshift_conn_id
-        self.redshift_table = table
-        self.redshift_schema = schema
+        self.redshift_table = redshift_table
+        self.redshift_schema = redshift_schema
+        self.redshift_arn = redshift_arn
         self.s3_bucket = s3_bucket
         self.s3_key = s3_key
-        self.arn = arn
         self.json_map = json_map
 
     def execute(self, context):
@@ -56,13 +49,14 @@ class StageToRedshiftOperator(BaseOperator):
         COPY {schema}.{table}
         FROM 's3://{bucket}/{key}'
         IAM_ROLE '{arn}'
-        FORMAT AS json '{json_map}'
+        DELIMITER ','
+        REMOVEQUOTES
+        IGNOREHEADER 1;
         """.format(schema=self.redshift_schema,
                    table=self.redshift_table,
                    bucket=self.s3_bucket,
                    key=self.s3_key,
-                   arn=self.arn,
-                   json_map=self.json_map)
+                   arn=self.redshift_arn)
 
         # execute SQL query in Redshift database
         self.log.info('Copying data from S3 to Redshift')

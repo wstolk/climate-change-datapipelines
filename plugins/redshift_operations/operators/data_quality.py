@@ -11,8 +11,8 @@ class DataQualityOperator(BaseOperator):
     a ValueError will be raised.
     :param redshift_conn_id:        Redshift connection ID.
     :type redshift_conn_id:         str
-    :param tables:                  List of tables to check for quality.
-    :type tables:                   list
+    :param table:                   List of tables to check for quality.
+    :type table:                    list
     """
 
     ui_color = '#89DA59'
@@ -20,11 +20,10 @@ class DataQualityOperator(BaseOperator):
     template_fields = ['redshift_conn_id']
 
     @apply_defaults
-    def __init__(self, redshift_conn_id, tables, *args, **kwargs):
-
-        super(DataQualityOperator, self).__init__(*args, **kwargs)
+    def __init__(self, redshift_conn_id, table, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.redshift_conn_id = redshift_conn_id
-        self.tables = tables
+        self.table = table
 
     def execute(self, context):
         # Setup connections and query
@@ -32,11 +31,7 @@ class DataQualityOperator(BaseOperator):
         query = ""
 
         # Dynamically generate SQL query
-        for idx, table in enumerate(self.tables):
-            query += f"SELECT COUNT(*) AS rows, '{table}' AS tablename FROM {table} "
-
-            if idx != len(self.tables) - 1:
-                query += "UNION ALL "
+        query += f"SELECT COUNT(*) AS rows, '{self.table}' AS tablename FROM {self.table} "
 
         # Execute query and loop over results
         res = postgres.get_records(query)

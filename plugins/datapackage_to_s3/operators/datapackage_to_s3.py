@@ -18,6 +18,8 @@ class DatapackageToS3Operator(BaseOperator):
     :type url:              str
     :param resource:        name of the resource in the datapackage you want to upload
     :type resource:         str
+    :param headers          list of column header names
+    :type headers           list
     :param s3_conn_id:      name of the S3 connection ID
     :type s3_conn_id:       str
     :param s3_bucket:       name of the S3 bucket where the file will be uploaded
@@ -29,9 +31,11 @@ class DatapackageToS3Operator(BaseOperator):
     template_fields = ['url', 'resource', 's3_conn_id', 's3_bucket', 's3_filepath']
 
     @apply_defaults
-    def __init__(self, url, resource, s3_conn_id, s3_bucket, s3_filepath):
-        self.url = url
+    def __init__(self, package_url, resource, headers, s3_conn_id, s3_bucket, s3_filepath, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.url = package_url
         self.resource = resource
+        self.headers = headers
         self.s3_conn_id = s3_conn_id
         self.s3_bucket = s3_bucket
         self.s3_filepath = s3_filepath
@@ -43,18 +47,19 @@ class DatapackageToS3Operator(BaseOperator):
 
         # Read resource from package and store to Pandas Dataframe
         logging.info("package retrieved, reading resource {resource} into DF".format(resource=self.resource))
-        resource = package.get_resource(self.resource)
+        resource = package.get_resource(self.resource).read()
         df = pd.DataFrame(resource)
+        df.columns = self.headers
 
         # Generate random unique filename for temporary storing CSV to filesystem
         fn_temp = str(uuid.uuid4())
 
         # Store Dataframe to locally stored CSV and upload to S3
-        df.to_csv(fn_temp)
+        df.to_csv(fn_temp, index=False)
         logging.info("uploading local CSV {fn} to S3://{bucket}/{fp}".format(fn=fn_temp,
                                                                              bucket=self.s3_bucket,
                                                                              fp=self.s3_filepath))
-        s3 = S3Hook(self.s3_conn_id)
+        s3 = S3Hook(aws_conn_id=self.s3_conn_id)
         s3.load_file(filename=fn_temp,
                      key=self.s3_filepath,
                      bucket_name=self.s3_bucket,

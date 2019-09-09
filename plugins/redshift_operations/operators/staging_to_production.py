@@ -1,16 +1,16 @@
+from airflow.hooks.postgres_hook import PostgresHook
 from airflow.models import BaseOperator
-from airflow.operators.postgres_operator import PostgresHook
 from airflow.utils.decorators import apply_defaults
 
 
-class LoadFactOperator(BaseOperator):
+class LoadStagingToProduction(BaseOperator):
     """
-    Load fact data from staging tables operator
+    Load dimension data from staging tables operator
 
-    Will execute a given query to select data from staging tables and insert into a fact table.
+    Will execute a given query to select data from staging tables and insert into a dimension table.
     :param redshift_conn_id:     Redshift connection ID.
     :type redshift_conn_id:      string
-    :param query:                Query to select the data in the database.
+    :param query:                Query to execute in the database.
     :type query:                 string
     :param schema:               Schema where the table is located the database.
     :type schema:                string
@@ -21,7 +21,7 @@ class LoadFactOperator(BaseOperator):
     :param delete_before_load:   If true, the table will be truncated before inserting data.
     :type delete_before_load:    bool
     """
-    ui_color = '#F98866'
+    ui_color = '#80BD9E'
 
     template_fields = ['redshift_conn_id', 'query']
 
@@ -34,7 +34,7 @@ class LoadFactOperator(BaseOperator):
                  columns=(),
                  delete_before_load=False,
                  *args, **kwargs):
-        super(LoadFactOperator, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.redshift_conn_id = redshift_conn_id
         self.query = query
         self.schema = schema
@@ -59,10 +59,10 @@ class LoadFactOperator(BaseOperator):
         {select_query}
         """.format(schema=self.schema,
                    table=self.table,
-                   columns=str(self.columns),
+                   columns='(' + ', '.join(self.columns) + ')',
                    select_query=self.query)
 
         # execute SQL query in Redshift database
-        self.log.info('Copying data from staging table to fact table')
+        self.log.info('Copying data from staging table to dimension table')
         postgres.run(query)
-        self.log.info('Copying data from staging table to fact table completed')
+        self.log.info('Copying data from staging table to dimension table completed')
