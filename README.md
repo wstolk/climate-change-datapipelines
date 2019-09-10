@@ -1,10 +1,12 @@
 # World Development Analysis
+![Airflow Overview](./resources/airflow_overview.png)
+
 Apache Airflow data pipelines to collect and process data about world development and climate change.
 
 ## Goal of the project
 This project has been initiated to finalise the Udacity Nanodegree of Data Engineering.
 Goal of the project is to build data pipelines for retrieving and processing 
-data about world development and it's correlation to climate change.
+data about world development and it's correlation to climate changes.
 
 ## Planning
 1. Gather data sources
@@ -13,13 +15,14 @@ data about world development and it's correlation to climate change.
 4. Define data model
 5. Build Airflow operators and plugins
 6. Build data pipelines
-7. Validate results
+7. Get it up and running yourself!
 
 ### 1. Data sources
 Most data packages are retrieved from [Datahub.io](https://datahub.io) 
 using the Python package [datapackage](https://github.com/frictionlessdata/datapackage-py).
 
 The world development indicators data package has been retrieved from [Kaggle.com](https://kaggle.com).
+This dataset has to be downloaded manually and stored to a root folder within the project called `/data/`.
 
 The following data packages have been used for this project:
 * [Global Temperature Time Series](https://datahub.io/core/global-temp)
@@ -192,7 +195,19 @@ Most relations between the fact and dimension tables are based on date or countr
 
 ![Data Model](./resources/world_development_data_model.png)
 
-### 5. Data pipelines
+### 5. Airflow operators and plugins
+
+When looking at the data pipelines needed, there are three plugins we need to build. 
+Each plugin can have multiple operators:
+1. Upload datapackage resource to S3
+2. Upload local file to S3
+3. Internal Redshift operations
+    1. Copy from S3 to staging tables
+    2. Copy from staging tables to production tables
+    3. Validate data quality
+
+### 6. Data pipelines (DAG's)
+
 The data pipelines have a number of goals:
 * Retrieving data out of sources:
     * API's
@@ -201,3 +216,55 @@ The data pipelines have a number of goals:
 * Copy data from the data lake to staging tables in the data warehouse (AWS Redshift)
 * Insert data from the staging tables to fact and dimension tables
 * Validate data quality
+
+In total, we have built three DAG's:
+1. `redshift_create_tables.py` for creating the staging and production tables in Redshift
+2. `datahub_datasets.py` for processing all datasets from [Datahub.io](https://datahub.io) to production tables in Redshift
+3. `local_datasets.py` for processing all local datasets to production tables in Redshift
+
+#### 6.1 Datahub datasets DAG
+![Datahub datasets DAG](./resources/dag_datahub.png)
+
+The Datahub datasets DAG is a generic DAG. This means that one codebase generates mulitple DAG's through a for loop.
+All the datasets are listed in the `datasets` variable, each containing nine variables:
+1. `id`: ID of the DAG.
+2. `url`: URL to the datapackage JSON.
+3. `resource`: resource within the datapackage that needs to be processed.
+4. `headers`: a list of header names. Make sure this matches the number of headers expected!
+5. `s3_filename`: name/path in which to store the resource in S3.
+6. `staging_table`: name of the staging table in Redshift.
+7. `prod_table`: name of the production table in Redshift.
+8. `prod_columns`: tuple of column names from the Redshift table. This has to be a tuple!
+9. `insert_query`: string containing a SQL select query to select the data from the staging table that you want to insert into the production table.
+
+#### 6.2 Local datasets DAG
+![Local datasets DAG](./resources/dag_localfiles.png)
+The local datasets DAG is a generic DAG. This means that one codebase generates mulitple DAG's through a for loop.
+All the local datasets are listed in the `datasets` variable, each containing seven variables:
+1. `id`: ID of the DAG.
+2. `path`: path to the file on your filesystem.
+3. `s3_filename`: name/path in which to store the resource in S3.
+4. `staging_table`: name of the staging table in Redshift.
+5. `prod_table`: name of the production table in Redshift.
+6. `prod_columns`: tuple of column names from the Redshift table. This has to be a tuple!
+7. `insert_query`: string containing a SQL select query to select the data from the staging table that you want to insert into the production table.
+
+### 7. Get it up and running yourself!
+Prerequisites:
+* Computer with at least 8GB of RAM and 5GB of free storage available
+* [Docker](https://www.docker.com/) with [docker-compose](https://docs.docker.com/compose/) (docker-compose should be included out of the box)
+
+Steps:
+1. Clone this repository
+2. Download the [Kaggle dataset](https://www.kaggle.com/worldbank/world-development-indicators) and store it to a folder called "data" in the root of this project
+3. Within your terminal, execute the following commands:
+    1. `cd ./path/to/the/repository`
+    2. `docker-compose up` (this might take a minute or two to finish booting the containers)
+4. Navigate to [localhost:8080](http://localhost:8080), you should be presented with the main Airflow overview
+5. Add the following variables under Admin/Variables:
+    1. `redshift_arn`: containing the ARN of your Redshift role
+    2. `redshift_schema`: name of your Redshift schema, usually the value is "public"
+    3. `s3_bucket`: name of your S3 bucket where the files will be stored
+6. Add the following connections under Admin/Connections:
+    1. `redshift_conn`, containing the connection details of your Redshift instance
+    2. `s3_conn`, containing the connection details to your S3 bucket

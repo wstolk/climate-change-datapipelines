@@ -12,7 +12,6 @@ default_args = {
     'wait_for_downstream': True,
     'retries': 4,
     'retry_delay': timedelta(minutes=5),
-    'start_date': datetime(2019, 6, 1),
     'provide_context': True
 }
 
@@ -25,14 +24,14 @@ def create_staging_tables(**kwargs):
     );"""
 
     create_temperature_staging = """CREATE TABLE IF NOT EXISTS temperature_staging (
-        "source" VARCHAR(10),
+        "source" VARCHAR,
         "date" DATE,
         "mean" FLOAT
     );"""
 
     create_population_staging = """CREATE TABLE IF NOT EXISTS population_staging (
-        "country_name" VARCHAR(255),
-        "country_code" VARCHAR(3),
+        "country_name" VARCHAR,
+        "country_code" VARCHAR,
         "year" INT,
         "value" FLOAT
     );"""
@@ -44,26 +43,26 @@ def create_staging_tables(**kwargs):
     );"""
 
     create_series_staging = """CREATE TABLE IF NOT EXISTS series_staging (
-        "series_code" VARCHAR(255),
-        "topic" VARCHAR(255),
-        "indicator_name" VARCHAR(255),
-        "short_definition" VARCHAR(255),
-        "long_definition" VARCHAR(255),
-        "unit_of_measure" VARCHAR(255),
-        "periodicity" VARCHAR(255),
-        "base_period" VARCHAR(255),
+        "series_code" VARCHAR,
+        "topic" VARCHAR,
+        "indicator_name" VARCHAR,
+        "short_definition" VARCHAR,
+        "long_definition" VARCHAR(MAX),
+        "unit_of_measure" VARCHAR,
+        "periodicity" VARCHAR,
+        "base_period" VARCHAR,
         "other_notes" FLOAT,
-        "aggregation_method" VARCHAR(255),
-        "limitations_and_exceptions" VARCHAR(255),
-        "notes_from_original_source" VARCHAR(255),
-        "general_comments" VARCHAR(255),
-        "source" VARCHAR(255),
-        "statistical_concept_and_methodology" VARCHAR(255),
-        "development_relevance" VARCHAR(255),
-        "related_source_links" VARCHAR(255),
-        "other_web_links" FLOAT,
+        "aggregation_method" VARCHAR,
+        "limitations_and_exceptions" VARCHAR(MAX),
+        "notes_from_original_source" VARCHAR(MAX),
+        "general_comments" VARCHAR(MAX),
+        "source" VARCHAR,
+        "statistical_concept_and_methodology" VARCHAR,
+        "development_relevance" VARCHAR,
+        "related_source_links" VARCHAR(MAX),
+        "other_web_links" VARCHAR(MAX),
         "related_indicators" FLOAT,
-        "license_type" VARCHAR(255)
+        "license_type" VARCHAR
     );"""
 
     create_co2_ppm_staging = """CREATE TABLE IF NOT EXISTS co2_ppm_staging (
@@ -76,43 +75,43 @@ def create_staging_tables(**kwargs):
     );"""
 
     create_countries_staging = """CREATE TABLE IF NOT EXISTS countries_staging (
-        "country_code" VARCHAR(3),
-        "shortname" VARCHAR(40),
-        "tablename" VARCHAR(40),
-        "longname" VARCHAR(255),
-        "alpha_code" VARCHAR(2),
-        "currency_unit" VARCHAR(40),
-        "special_notes" TEXT,
-        "region" VARCHAR(30),
-        "income_group" VARCHAR(30),
-        "national_accounts_base_year" VARCHAR(255),
-        "national_accounts_reference_year" VARCHAR(255),
-        "sna_price_valuation" VARCHAR(100),
-        "lendingcategory" VARCHAR(40),
-        "other_groups" VARCHAR(50),
-        "system_of_national_accounts" VARCHAR(100),
-        "alternative_conversion_factor" VARCHAR(60),
-        "ppp_survey_year" VARCHAR(60),
-        "balance_of_payments_manual_in_use" VARCHAR(255),
-        "external_debt_reporting_status" VARCHAR(40),
-        "system_of_trade" VARCHAR(60),
-        "government_accounting_concept" VARCHAR(60),
-        "imf_data_dissemination_standard" VARCHAR(100),
-        "latest_population_census" VARCHAR(60),
-        "latest_household_survey" VARCHAR(255),
-        "source_of_most_recent_income_data" VARCHAR(255),
-        "vital_registration_complete" VARCHAR(60),
-        "latest_agricultural_census" VARCHAR(60),
-        "latest_industrial_data" FLOAT,
-        "latest_trade_data" FLOAT,
-        "latest_water_withdrawal_data" FLOAT
+        "country_code" VARCHAR,
+        "shortname" VARCHAR,
+        "tablename" VARCHAR,
+        "longname" VARCHAR,
+        "alpha_code" VARCHAR,
+        "currency_unit" VARCHAR,
+        "special_notes" VARCHAR(MAX),
+        "region" VARCHAR,
+        "income_group" VARCHAR,
+        "national_accounts_base_year" VARCHAR,
+        "national_accounts_reference_year" VARCHAR,
+        "sna_price_valuation" VARCHAR,
+        "lendingcategory" VARCHAR,
+        "other_groups" VARCHAR,
+        "system_of_national_accounts" VARCHAR,
+        "alternative_conversion_factor" VARCHAR,
+        "ppp_survey_year" VARCHAR,
+        "balance_of_payments_manual_in_use" VARCHAR,
+        "external_debt_reporting_status" VARCHAR,
+        "system_of_trade" VARCHAR,
+        "government_accounting_concept" VARCHAR,
+        "imf_data_dissemination_standard" VARCHAR,
+        "latest_population_census" VARCHAR,
+        "latest_household_survey" VARCHAR,
+        "source_of_most_recent_income_data" VARCHAR,
+        "vital_registration_complete" VARCHAR,
+        "latest_agricultural_census" VARCHAR,
+        "latest_industrial_data" VARCHAR,
+        "latest_trade_data" VARCHAR,
+        "latest_water_withdrawal_data" VARCHAR
     );"""
 
     create_indicators_staging = """CREATE TABLE indicators_staging (
-        "country_name" VARCHAR(255),
-        "country_code" VARCHAR(255),
-        "indicator_name" VARCHAR(255),
-        "indicator_code" VARCHAR(255),
+        "country_name" VARCHAR,
+        "country_code" VARCHAR,
+        "indicator_name" VARCHAR,
+        "indicator_code" VARCHAR,
         "year" INT,
         "value" FLOAT
     );"""
@@ -175,16 +174,16 @@ def create_tables(**kwargs):
 
     create_countries_dimension = """CREATE TABLE IF NOT EXISTS countries_dimension (
         "country_code" VARCHAR(3) PRIMARY KEY,
-        "shortname" VARCHAR(40) NOT NULL DISTKEY,
+        "shortname" VARCHAR(80) NOT NULL DISTKEY,
         "alpha_code" VARCHAR(2) NOT NULL,
-        "currency_unit" VARCHAR(40) NOT NULL,
+        "currency_unit" VARCHAR(80) NOT NULL,
         "region" VARCHAR(30) NOT NULL,
         "income_group" VARCHAR(30) NOT NULL
     ) SORTKEY (region, income_group);"""
 
     create_indicators_fact = """CREATE TABLE indicators_fact (
         "indicator_id" INT IDENTITY(0,1) PRIMARY KEY,
-        "indicator_code" VARCHAR(20) NOT NULL DISTKEY,
+        "indicator_code" VARCHAR(40) NOT NULL DISTKEY,
         "country_code" VARCHAR(3) NOT NULL,
         "year" INT NOT NULL,
         "value" BIGINT NOT NULL
@@ -246,6 +245,7 @@ def drop_tables(**kwargs):
 dag = DAG('redshift_create_tables',
           start_date=datetime.now(),
           default_args=default_args,
+          schedule_interval=None,
           description='Will drop all existing tables and create fresh tables with triggers')
 
 drop = PythonOperator(task_id="drop_tables",

@@ -18,7 +18,6 @@ default_args = {
 
 # Default connection variables
 s3_conn_id = 's3_conn'
-s3_filepath = 'global_temp_monthly.csv'
 s3_bucket = Variable.get('s3_bucket')
 redshift_conn_id = 'redshift_conn'
 redshift_schema = Variable.get('redshift_schema')
@@ -28,39 +27,42 @@ datasets = [
     {
         "id": "country_info",
         "path": "/usr/local/airflow/data/Country.csv",
+        "s3_filename": "countries.csv",
         "staging_table": "countries_staging",
         "prod_table": "countries_dimension",
         "prod_columns": ("country_code", "shortname", "alpha_code", "currency_unit", "region", "income_group"),
-        "insert_query": SqlQueries.temperature_insert
+        "insert_query": SqlQueries.country_insert
     }, {
         "id": "series_info",
         "path": "/usr/local/airflow/data/Series.csv",
+        "s3_filename": "series.csv",
         "staging_table": "series_staging",
         "prod_table": "series_dimension",
         "prod_columns": ("series_code", "topic", "indicator_name", "periodicity", "base_period", "aggregation_method"),
         "insert_query": SqlQueries.temperature_insert
     }, {
         "id": "indicators",
-        "path": "/usr/local/airflow/data/Series.csv",
+        "path": "/usr/local/airflow/data/Indicators.csv",
+        "s3_filename": "indicators.csv",
         "staging_table": "indicators_staging",
         "prod_table": "indicators_fact",
         "prod_columns": ("indicator_code", "country_code", "year", "value"),
-        "insert_query": SqlQueries.temperature_insert
+        "insert_query": SqlQueries.indicator_insert
     }
 ]
 
 
-def create_dag(id, path, staging_table, prod_table, prod_columns, insert_query):
+def create_dag(id, path, s3_fn, staging_table, prod_table, prod_columns, insert_query):
     dag = DAG(dag_id=id,
               description='processing of global temperature data to Redshift',
-              schedule_interval='0 3 1 * *',
+              schedule_interval=None,
               default_args=default_args)
 
     store_to_s3 = UploadToS3Operator(task_id='{id}_localfile_to_s3'.format(id=id),
                                           path=path,
                                           s3_conn_id=s3_conn_id,
                                           s3_bucket=s3_bucket,
-                                          s3_filepath=s3_filepath,
+                                          s3_filepath=s3_fn,
                                           dag=dag)
 
     s3_to_staging = StageToRedshiftOperator(task_id='{id}_stage_data'.format(id=id),
@@ -69,7 +71,7 @@ def create_dag(id, path, staging_table, prod_table, prod_columns, insert_query):
                                             redshift_schema=redshift_schema,
                                             redshift_arn=redshift_arn,
                                             s3_bucket=s3_bucket,
-                                            s3_key=s3_filepath,
+                                            s3_key=s3_fn,
                                             dag=dag)
 
     staging_to_prod = LoadStagingToProduction(task_id='{id}_staging_to_prod'.format(id=id),
@@ -95,6 +97,7 @@ def create_dag(id, path, staging_table, prod_table, prod_columns, insert_query):
 for set in datasets:
     globals()[set["id"]] = create_dag(set["id"],
                                       set["path"],
+                                      set["s3_filename"],
                                       set["staging_table"],
                                       set["prod_table"],
                                       set["prod_columns"],
