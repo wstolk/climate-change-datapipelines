@@ -50,7 +50,7 @@ class StageToRedshiftOperator(BaseOperator):
         FROM 's3://{bucket}/{key}'
         IAM_ROLE '{arn}'
         DELIMITER ','
-        REMOVEQUOTES
+        CSV
         IGNOREHEADER 1;
         """.format(schema=self.redshift_schema,
                    table=self.redshift_table,

@@ -28,3 +28,21 @@ class SqlQueries:
            "gmsl"
     FROM sealevel_staging;
     """)
+
+    country_insert = ("""
+    SELECT "country_code",
+           "shortname",
+           "alpha_code",
+           "currency_unit",
+           "region",
+           "income_group"
+    FROM countries_staging;
+    """)
+
+    indicator_insert = ("""
+    SELECT "indicator_code",
+        "country_code",
+        "year",
+        "value"
+    FROM indicators_staging;
+    """)
