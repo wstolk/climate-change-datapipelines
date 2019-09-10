@@ -9,7 +9,7 @@ Goal of the project is to build data pipelines for retrieving and processing
 data about world development and it's correlation to climate changes.
 
 ## Planning
-1. Gather data sources
+1. [Gather data sources](#1-data-sources)
 2. Setup development environment
 3. Analyse data sources using Jupyter Notebooks
 4. Define data model
