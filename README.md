@@ -10,12 +10,12 @@ data about world development and it's correlation to climate changes.
 
 ## Planning
 1. [Gather data sources](#1-data-sources)
-2. Setup development environment
-3. Analyse data sources using Jupyter Notebooks
-4. Define data model
-5. Build Airflow operators and plugins
-6. Build data pipelines
-7. Get it up and running yourself!
+2. [Setup development environment](#2-development-environment)
+3. [Analyse data sources using Jupyter Notebooks](#3-dataset-analysis)
+4. [Define data model](#4-data-model)
+5. [Build Airflow operators and plugins](#5-airflow-operators-and-plugins)
+6. [Build data pipelines](#6-data-pipelines-dags)
+7. [Get it up and running yourself!](#7-get-it-up-and-running-yourself)
 
 ### 1. Data sources
 Most data packages are retrieved from [Datahub.io](https://datahub.io) 
